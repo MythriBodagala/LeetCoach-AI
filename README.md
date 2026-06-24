@@ -19,17 +19,17 @@ An interactive, full-stack AI-powered code review platform designed for software
 
 * **Frontend:** React, TypeScript, Monaco Editor, Vite
 * **Backend:** Node.js, Express, TypeScript
-* **Database & ORM:** Prisma ORM, MySQL / PostgreSQL
-* **Caching Layer:** Local Execution DB/Cache Lookup Engine
+* **Database & ORM:** Prisma ORM, PostgreSQL (via Neon Cloud)
+* **Caching Layer:** Database/Local Caching Strategy
 
 ---
 
 ## 🛠️ Local Installation & Setup
 
 ### Prerequisites
-Ensure you have **Node.js (v18+)** and your target relational database instance running locally.
+Ensure you have **Node.js (v18+)** installed on your machine and a running PostgreSQL instance (or cloud provider account like Neon).
 
 ### 1. Repository Installation
 ```bash
-git clone [https://github.com/YOUR_USERNAME/LeetCoach-AI.git](https://github.com/YOUR_USERNAME/LeetCoach-AI.git)
+git clone [https://github.com/MythriBodagala/LeetCoach-AI.git](https://github.com/MythriBodagala/LeetCoach-AI.git)
 cd LeetCoach-AI
