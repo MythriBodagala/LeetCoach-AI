@@ -1,0 +1,187 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  passwordHash  String?
+  name          String?
+  role          Role           @default(STUDENT)
+  tier          Tier           @default(FREE)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  attempts      Attempt[]
+  flashcards    Flashcard[]
+  interviews    Interview[]
+  notifications Notification[]
+  progress      Progress[]
+  sessions      Session[]
+  studyPlans    StudyPlan[]
+  subscription  Subscription?
+
+  @@index([email])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String   @unique
+  userAgent    String?
+  ipAddress    String?
+  isValid      Boolean  @default(true)
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Problem {
+  id              String        @id @default(uuid())
+  leetcodeId      Int           @unique
+  slug            String        @unique
+  title           String
+  difficulty      String
+  content         String
+  patterns        PatternType[]
+  timeComplexity  String
+  spaceComplexity String
+  createdAt       DateTime      @default(now())
+  attempts        Attempt[]
+  flashcards      Flashcard[]
+  progress        Progress[]
+}
+
+model Attempt {
+  id              String   @id @default(uuid())
+  userId          String
+  problemId       String
+  isSuccessful    Boolean
+  timeSpentSec    Int
+  unlockedHintLvl Int      @default(0)
+  codeSnapshot    String?
+  createdAt       DateTime @default(now())
+  feedback        String?
+  problem         Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, problemId])
+}
+
+model Flashcard {
+  id             String   @id @default(uuid())
+  userId         String
+  problemId      String?
+  front          String
+  back           String
+  intervalDays   Int      @default(1)
+  easeFactor     Float    @default(2.5)
+  repetitions    Int      @default(0)
+  nextReviewDate DateTime @default(now())
+  createdAt      DateTime @default(now())
+  problem        Problem? @relation(fields: [problemId], references: [id])
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, nextReviewDate])
+}
+
+model Progress {
+  id          String      @id @default(uuid())
+  userId      String
+  problemId   String
+  pattern     PatternType
+  proficiency Float       @default(0.0)
+  lastUpdated DateTime    @updatedAt
+  problem     Problem     @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, problemId, pattern])
+}
+
+model StudyPlan {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  targetDate  DateTime
+  roadmapJson Json
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Interview {
+  id           String            @id @default(uuid())
+  userId       String
+  transcript   Json
+  overallScore Float
+  createdAt    DateTime          @default(now())
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  metrics      InterviewMetric[]
+}
+
+model InterviewMetric {
+  id          String     @id @default(uuid())
+  interviewId String
+  type        MetricType
+  score       Float
+  feedback    String
+  interview   Interview  @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  stripeCustomerId     String   @unique
+  stripeSubscriptionId String   @unique
+  status               String
+  currentPeriodEnd     DateTime
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum Tier {
+  FREE
+  PREMIUM
+}
+
+enum PatternType {
+  SLIDING_WINDOW
+  TWO_POINTERS
+  BINARY_SEARCH
+  GRAPH
+  TREE
+  DYNAMIC_PROGRAMMING
+  GREEDY
+  MONOTONIC_STACK
+  HEAP
+  BACKTRACKING
+  UNION_FIND
+}
+
+enum MetricType {
+  COMMUNICATION
+  TECHNICAL_DEPTH
+  PROBLEM_SOLVING
+  OPTIMIZATION
+}
