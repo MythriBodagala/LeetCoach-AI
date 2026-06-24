@@ -16,23 +16,27 @@ export const submitAttempt = async (req: Request, res: Response) => {
     const simulatedLeetcodeId = Math.floor(Math.random() * 2000) + 1;
 
     // 1. Automatically find or upsert the problem so it always exists
+    // 1. Automatically find or upsert the problem by its UNIQUE slug field
     const problem = await prisma.problem.upsert({
-      where: { id: problemSlug },
-      update: {},
+      where: { 
+        slug: problemSlug // 🚀 FIX: Look it up by slug instead of id
+      },
+      update: {
+    // Leave this empty or keep slug: problemSlug. It just tells prisma to do nothing if it already exists.
+        slug: problemSlug 
+      },
       create: {
-        id: problemSlug,
-        // Explicitly type 'w' as a string to clear the implicit any error
+        id: problemSlug, // If your schema expects id to be a string slug
         title: problemSlug.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
         slug: problemSlug,
         difficulty: "Medium", 
         content: `Dynamic workspace context for LeetCode problem: ${problemSlug}`,
-        // 🚀 ADDED MANDATORY SCHEMA FIELDS BELOW:
         leetcodeId: simulatedLeetcodeId, 
         timeComplexity: "O(n)",
         spaceComplexity: "O(n)"
       }
     });
-
+    
     // 2. Create the attempt linked to our guaranteed problem record
     const attempt = await prisma.attempt.create({
       data: {
